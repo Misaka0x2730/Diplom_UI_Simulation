@@ -35,6 +35,16 @@ Purpose     : Simple demo drawing "Hello world"
 *
 *       MainTask
 */
+
+void UI_MenuSwitch(MENU_SWITCH menuDirection)
+{
+	static u8_t currentMenu = MAIN_MENU;
+	if (menuDirection == MENU_NEXT)
+	{
+		
+	}
+}
+
 void UI_DisplayMainMenu(DEVICE_MODES mode, DEVICE_STATES state, s16_t temp, u16_t pressure, u16_t humidity)
 {
 	u8_t startY = 20;
@@ -68,11 +78,12 @@ void UI_DisplaySettingsMenu()
 	u8_t startY = 20;
 	u8_t key = 0;
 	SPINBOX_Handle address;
-	DROPDOWN_Handle mode;
+	LISTBOX_Handle mode;
 	LISTBOX_Handle baud;
 	SPINBOX_Handle waitingTime;
 	TEXT_Handle text;
 	WM_HWIN hParent;
+	GUI_ConstString modeArray[] = { "Slave", "Master", NULL };
 	GUI_ConstString baudArray[] = {"1200", "2400", "9600", NULL};
 	WM_HMEM *focusArray[] = {&mode, &address, &baud};
 	u8_t focusCount = 0;
@@ -84,9 +95,7 @@ void UI_DisplaySettingsMenu()
 	GUI_DispStringAt("Baud: ", 10, startY + 4 * INC_YVALUE);
 	GUI_DispStringAt("Waiting time: ", 10, startY + 5 * INC_YVALUE);
 
-	mode = DROPDOWN_CreateEx(140, startY + 2 * INC_YVALUE, 60, GUI_GetYDistOfFont(GUI_GetFont()), WM_HBKWIN, WM_CF_SHOW, DROPDOWN_CF_AUTOSCROLLBAR, 1);
-	DROPDOWN_AddString(mode, "Slave");
-	DROPDOWN_AddString(mode, "Master");
+	mode = LISTBOX_CreateEx(140, startY + 2 * INC_YVALUE, 60, GUI_GetYDistOfFont(GUI_GetFont()), WM_HBKWIN, WM_CF_SHOW, 0, 1, modeArray);
 	address = SPINBOX_CreateEx(140, startY + 3*INC_YVALUE, 60, GUI_GetYDistOfFont(GUI_GetFont()), WM_HBKWIN, WM_CF_SHOW, 0, 1, 250);
 	baud = LISTBOX_CreateEx(140, startY + 4 * INC_YVALUE, 60, GUI_GetYDistOfFont(GUI_GetFont()), WM_HBKWIN, WM_CF_SHOW, 0, 1, baudArray);
 	address = SPINBOX_CreateEx(140, startY + 5 * INC_YVALUE, 60, GUI_GetYDistOfFont(GUI_GetFont()), WM_HBKWIN, WM_CF_SHOW, 0, 1, 250);
