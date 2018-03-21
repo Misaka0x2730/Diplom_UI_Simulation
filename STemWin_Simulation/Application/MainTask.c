@@ -35,9 +35,40 @@ Purpose     : Simple demo drawing "Hello world"
 *
 *       MainTask
 */
-void UI_DisplayMainMenu(DEVICE_MODES mode, DEVICE_STATES state, s16_t temp, u16_t pressure, u16_t humidity)
+
+MENU_SWITCH UI_DisplayMainMenu(DEVICE_MODES mode, DEVICE_STATES state, s16_t temp, u16_t pressure, u16_t humidity);
+MENU_SWITCH UI_DisplaySettingsMenu();
+
+void UI_MenuTask()
+{
+	u8_t currentMenu = MAIN_MENU;
+	u8_t nextMenu = MAIN_MENU;
+	while(1)
+	{
+		switch(currentMenu)
+		{
+			case MAIN_MENU:
+			{
+				nextMenu = UI_DisplayMainMenu(MODE_SLAVE, STATE_STOP, 26, 100, 50);
+				if(nextMenu == MENU_NEXT)
+					currentMenu++;
+				break;
+			}
+			case SETTINGS_MENU:
+			{
+				nextMenu = UI_DisplaySettingsMenu();
+				if(nextMenu == MENU_PREV)
+					currentMenu--;
+				break;
+			}
+		}
+	}
+}
+
+MENU_SWITCH UI_DisplayMainMenu(DEVICE_MODES mode, DEVICE_STATES state, s16_t temp, u16_t pressure, u16_t humidity)
 {
 	u8_t startY = 20;
+	u8_t key = 0;
 
 	GUI_Clear();
 	GUI_DispStringHCenterAt("Main", LCD_GetXSize()/2, startY);
@@ -61,12 +92,33 @@ void UI_DisplayMainMenu(DEVICE_MODES mode, DEVICE_STATES state, s16_t temp, u16_
 	GUI_DispStringAt("Humidity: ", 20, startY + 6 * INC_YVALUE);
 	GUI_DispDecMin(humidity);
 	GUI_DispString("%");
+
+	while(1)
+	{
+		key = GUI_GetKey();
+		switch (key)
+		{
+			case GUI_KEY_RIGHT:
+			{
+				return MENU_NEXT;
+				break;
+			}
+			default:
+			{
+				key = 0;
+				break;
+			}
+		}
+		GUI_ClearKeyBuffer();
+		GUI_Delay(800);
+	}
 }
 
-void UI_DisplaySettingsMenu()
+MENU_SWITCH UI_DisplaySettingsMenu()
 {
 	u8_t startY = 20;
 	u8_t key = 0;
+	WM_HWIN window;
 	SPINBOX_Handle address;
 	DROPDOWN_Handle mode;
 	LISTBOX_Handle baud;
@@ -74,7 +126,7 @@ void UI_DisplaySettingsMenu()
 	TEXT_Handle text;
 	WM_HWIN hParent;
 	GUI_ConstString baudArray[] = {"1200", "2400", "9600", NULL};
-	WM_HMEM *focusArray[] = {&mode, &address, &baud};
+	WM_HMEM *focusArray[] = {&mode, &address, &baud, &waitingTime};
 	u8_t focusCount = 0;
 
 	GUI_Clear();
@@ -89,23 +141,9 @@ void UI_DisplaySettingsMenu()
 	DROPDOWN_AddString(mode, "Master");
 	address = SPINBOX_CreateEx(140, startY + 3*INC_YVALUE, 60, GUI_GetYDistOfFont(GUI_GetFont()), WM_HBKWIN, WM_CF_SHOW, 0, 1, 250);
 	baud = LISTBOX_CreateEx(140, startY + 4 * INC_YVALUE, 60, GUI_GetYDistOfFont(GUI_GetFont()), WM_HBKWIN, WM_CF_SHOW, 0, 1, baudArray);
-	address = SPINBOX_CreateEx(140, startY + 5 * INC_YVALUE, 60, GUI_GetYDistOfFont(GUI_GetFont()), WM_HBKWIN, WM_CF_SHOW, 0, 1, 250);
+	waitingTime = SPINBOX_CreateEx(140, startY + 5 * INC_YVALUE, 60, GUI_GetYDistOfFont(GUI_GetFont()), WM_HBKWIN, WM_CF_SHOW, 0, 1, 250);
 	WM_SetFocus(*focusArray[focusCount]);
-	//LISTBOX_SetAutoScrollV(baud, 1);
-	//baud = DROPDOWN_CreateEx(140, startY + 4 * INC_YVALUE, 80, 60, WM_HBKWIN, WM_CF_SHOW, DROPDOWN_CF_AUTOSCROLLBAR, 1);
-	//DROPDOWN_AddString(baud, "1200");
-	//DROPDOWN_AddString(baud, "9600");
-	//address = SPINBOX_CreateEx(140, startY + 5*INC_YVALUE, 50, 20, WM_HBKWIN, WM_CF_SHOW, 0, 1, 250);
-	//hParent = WM_CreateWindow(0, 0, LCD_GetXSize(), LCD_GetYSize(), WM_CF_SHOW, _cbParent, 0);
-	//GUI_Clear();
-	//text = TEXT_CreateEx(20, 40, 20, 20, WM_HBKWIN, WM_CF_SHOW, TEXT_CF_TOP, 1, "123"); 
-	
-	//("Settings", LCD_GetXSize()/2, startY);
-	
-	//addressSpinbox = SPINBOX_CreateEx(100, startY + 2*INC_YVALUE, 50, 20, WM_HBKWIN, WM_CF_SHOW, 0, 1, 250);
-	//text = TEXT_CreateEx(20, 40, 20, 20, WM_HBKWIN, WM_CF_SHOW, TEXT_CF_TOP, 1, "123"); 
-	//TEXT_SetTextColor(text, GUI_WHITE);
-	//SPINBOX_SetValue(addressSpinbox, 12);
+
 	while(1)
 	{
 		key = GUI_GetKey();
@@ -113,9 +151,18 @@ void UI_DisplaySettingsMenu()
 		{
 			case GUI_KEY_ENTER:
 			{
-				WM_SetFocus(*focusArray[focusCount++]);
-				if(focusCount == sizeof(focusArray)/sizeof(focusArray[0]))
+				if((++focusCount) == sizeof(focusArray)/sizeof(focusArray[0]))
 					focusCount = 0;
+				WM_SetFocus(*focusArray[focusCount]);
+				break;
+			}
+			case GUI_KEY_LEFT:
+			{
+				WM_DeleteWindow(mode);
+				WM_DeleteWindow(address);
+				WM_DeleteWindow(baud);
+				WM_DeleteWindow(waitingTime);
+				return MENU_PREV;
 				break;
 			}
 			default:
@@ -124,7 +171,8 @@ void UI_DisplaySettingsMenu()
 				break;
 			}
 		}
-		GUI_Delay(700);
+		GUI_ClearKeyBuffer();
+		GUI_Delay(800);
 	}
 
 	/*if(mode == MODE_MASTER)
@@ -157,30 +205,8 @@ void MainTask(void)
 	GUI_Init();
 	GUI_Clear();
 	GUI_SetFont(&GUI_Font20_1);
-	UI_DisplayMainMenu(MODE_SLAVE, STATE_STOP, 26, 100, 50);
-	while (1)
-	{
-		key = GUI_GetKey();
-		switch (key)
-		{
-			case GUI_KEY_RIGHT:
-			{
-				UI_DisplaySettingsMenu();
-				break;
-			}
-			case GUI_KEY_LEFT:
-			{
-				UI_DisplayMainMenu(MODE_SLAVE, STATE_STOP, 26, 100, 50);
-				break;
-			}
-			default:
-			{
-				key = 0;
-				break;
-			}
-		}
-
-	}
+	UI_MenuTask();
+	while(1);
 }
 
 /*************************** End of file ****************************/

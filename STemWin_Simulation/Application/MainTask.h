@@ -32,5 +32,11 @@ typedef enum MENU_STATES
 	SETTINGS_MENU = 1
 }KEY_STATES;
 
+typedef enum MENU_SWITCH
+{
+	MENU_NEXT = 0,
+	MENU_PREV = 1,
+	MENU_STAY = 2
+}MENU_SWITCH;
 
 #define INC_YVALUE	20
