@@ -14,7 +14,11 @@ typedef signed int s32_t;
 #define WIDGET_ADDRESS_ID			(GUI_ID_USER + 1)
 #define WIDGET_BAUD_ID				(GUI_ID_USER + 2)
 #define WIDGET_WAITING_TIME_ID		(GUI_ID_USER + 3)
+#define WIDGET_FRAME_ID				(GUI_ID_USER + 4)
+#define WIDGET_TEXT_MODE_ID			(GUI_ID_USER + 4)
 
+#define LEFT_X	10
+#define TOP_Y	20
 typedef struct 
 {
 	u8_t deviceMode;
@@ -62,4 +66,6 @@ typedef struct
 	DEVICE_SettingsStruct settings;
 }UI_DeviceStateStruct;
 
-#define INC_YVALUE	20
+#define INC_YVALUE	26
+#define FONT_HEIGHT	20
+#define MAIN_FONT GUI_Font20_1

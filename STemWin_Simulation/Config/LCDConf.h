@@ -23,6 +23,13 @@ Purpose     : Display driver configuration file
 #ifndef LCDCONF_H
 #define LCDCONF_H
 
+//
+// Physical display size
+//
+#define XSIZE_PHYS  320
+#define YSIZE_PHYS  240
+#define VYSIZE_PHYS (YSIZE_PHYS << 1)
+
 #endif /* LCDCONF_H */
 
 /*************************** End of file ****************************/

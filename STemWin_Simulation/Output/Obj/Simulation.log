@@ -1,47 +1,5 @@
 ﻿  MainTask.c
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(67): error C2065: SPINBOX_Handle: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(67): error C2146: синтаксическая ошибка: отсутствие ";" перед идентификатором "address"
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(67): error C2065: address: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(68): error C2065: LISTBOX_Handle: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(68): error C2146: синтаксическая ошибка: отсутствие ";" перед идентификатором "mode"
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(68): error C2065: mode: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(69): error C2065: LISTBOX_Handle: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(69): error C2146: синтаксическая ошибка: отсутствие ";" перед идентификатором "baud"
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(69): error C2065: baud: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(70): error C2065: SPINBOX_Handle: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(70): error C2146: синтаксическая ошибка: отсутствие ";" перед идентификатором "waitingTime"
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(70): error C2065: waitingTime: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(71): error C2065: TEXT_Handle: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(71): error C2146: синтаксическая ошибка: отсутствие ";" перед идентификатором "text"
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(71): error C2065: text: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(72): error C2065: WM_HWIN: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(72): error C2146: синтаксическая ошибка: отсутствие ";" перед идентификатором "hParent"
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(72): error C2065: hParent: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(73): error C2065: NULL: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(74): error C2065: NULL: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(75): error C2065: WM_HMEM: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(75): error C2065: focusArray: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(75): error C2059: синтаксическая ошибка: ]
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(85): error C2065: mode: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(85): warning C4013: LISTBOX_CreateEx: нет определения; предполагается "extern" с возвратом типа "int"
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(85): error C2065: WM_HBKWIN: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(85): error C2065: WM_CF_SHOW: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(86): error C2065: address: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(86): warning C4013: SPINBOX_CreateEx: нет определения; предполагается "extern" с возвратом типа "int"
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(86): error C2065: WM_HBKWIN: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(86): error C2065: WM_CF_SHOW: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(87): error C2065: baud: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(87): error C2065: WM_HBKWIN: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(87): error C2065: WM_CF_SHOW: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(88): error C2065: address: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(88): error C2065: WM_HBKWIN: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(88): error C2065: WM_CF_SHOW: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(89): warning C4013: WM_SetFocus: нет определения; предполагается "extern" с возвратом типа "int"
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(89): error C2065: focusArray: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(89): error C2109: для индекса требуется массив или указатель
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(112): error C2065: focusArray: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(112): error C2109: для индекса требуется массив или указатель
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(113): error C2065: focusArray: необъявленный идентификатор
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(113): error C2109: для индекса требуется массив или указатель
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(73): warning C4047: инициализация: "GUI_ConstString" отличается по уровням косвенного обращения от "int"
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(74): warning C4047: инициализация: "GUI_ConstString" отличается по уровням косвенного обращения от "int"
+f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(165): warning C4101: deviceState: неиспользованная локальная переменная
+f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(331): warning C4700: использована неинициализированная локальная переменная "window"
+  Simulation.vcxproj -> F:\Diplom\Diplom_UI_Simulation\STemWin_Simulation\.\Output\Exe\simulation.exe
+  Simulation.vcxproj -> .\Output\Exe\simulation.pdb (Full PDB)

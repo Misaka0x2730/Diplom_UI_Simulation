@@ -25,6 +25,9 @@ Purpose     : Simple demo drawing "Hello world"
 #include "SPINBOX.h"
 #include "TEXT.h"
 #include "DROPDOWN.h"
+#include "FRAMEWIN.h"
+#include "BUTTON.h"
+#include "LCDConf.h"
 /*********************************************************************
 *
 *       Public code
@@ -37,14 +40,44 @@ Purpose     : Simple demo drawing "Hello world"
 */
 
 MENU_SWITCH UI_DisplayMainMenu(DEVICE_MODES mode, DEVICE_STATES state, s16_t temp, u16_t pressure, u16_t humidity);
-MENU_SWITCH UI_DisplaySettingsMenu();
+MENU_SWITCH UI_DisplaySettingsMenu(UI_DeviceStateStruct *deviceState);
+
+static const GUI_WIDGET_CREATE_INFO settingsDialogCreate[] = {
+	{FRAMEWIN_CreateIndirect, "Settings", WIDGET_FRAME_ID, 0, 0, XSIZE_PHYS, YSIZE_PHYS, 0, 0 },
+	{TEXT_CreateIndirect, "Mode:", WIDGET_TEXT_MODE_ID, LEFT_X, TOP_Y + 2 * INC_YVALUE, 120, FONT_HEIGHT, 0, 0}
+	{TEXT_CreateIndirect, "Address:", WIDGET_TEXT_MODE_ID, LEFT_X, TOP_Y + 2 * INC_YVALUE, 120, FONT_HEIGHT, 0, 0}
+	{TEXT_CreateIndirect, "Baud:", WIDGET_TEXT_MODE_ID, LEFT_X, TOP_Y + 2 * INC_YVALUE, 120, FONT_HEIGHT, 0, 0}
+};
+
+static void UI_DialogCallback(WM_MESSAGE *pMsg)
+{
+	WM_HWIN hWin = pMsg->hWin;
+	WM_HWIN hItem;
+	switch (pMsg->MsgId)
+	{
+	case WM_INIT_DIALOG:
+	{
+		hItem = WM_GetDialogItem(hWin, WIDGET_TEXT_MODE_ID);
+		break;
+	}
+	case WM_KEY:
+	{
+		WM_DefaultProc(pMsg);
+		break;
+	}
+	default:
+	{
+		WM_DefaultProc(pMsg);
+		break;
+	}
+	}
+}
 
 void UI_MenuTask()
 {
 	DEVICE_SettingsStruct deviceSettings = {0,23,0,42};
 	UI_DeviceStateStruct deviceState;
 	u8_t currentMenu = MAIN_MENU;
-	u8_t nextMenu = MAIN_MENU;
 
 	deviceState.settings = deviceSettings;
 	deviceState.modeChanged = 0;
@@ -56,15 +89,17 @@ void UI_MenuTask()
 		{
 			case MAIN_MENU:
 			{
-				nextMenu = UI_DisplayMainMenu(MODE_SLAVE, STATE_STOP, 26, 100, 50);
-				if(nextMenu == MENU_NEXT)
+				deviceState.menuSwitch = MENU_STAY;
+				deviceState.menuSwitch = UI_DisplayMainMenu(MODE_SLAVE, STATE_STOP, 26, 100, 50);
+				if(deviceState.menuSwitch == MENU_NEXT)
 					currentMenu++;
 				break;
 			}
 			case SETTINGS_MENU:
 			{
-				nextMenu = UI_DisplaySettingsMenu(&deviceState);
-				if(nextMenu == MENU_PREV)
+				deviceState.menuSwitch = MENU_STAY;
+				deviceState.menuSwitch = UI_DisplaySettingsMenu(&deviceState);
+				if(deviceState.menuSwitch == MENU_PREV)
 					currentMenu--;
 				break;
 			}
@@ -122,79 +157,69 @@ MENU_SWITCH UI_DisplayMainMenu(DEVICE_MODES mode, DEVICE_STATES state, s16_t tem
 	}
 }
 
-static u8_t modeChanged = 0;
-
-static void UI_ModeSlaveListBoxCallback(WM_MESSAGE *pMsg)
+static void UI_FrameWinCallback(WM_MESSAGE *pMsg)
 {
 	u16_t startY = 20;
 	u16_t leftX = 10;
-	WM_KEY_INFO key;
-	if(pMsg->MsgId == WM_NOTIFY_PARENT)
+	GUI_ConstString baudArray[] = { "1200", "2400", "9600", "115200", NULL };
+	GUI_ConstString modeArray[] = { "Slave", "Master", NULL };
+
+	UI_DeviceStateStruct *deviceState;
+	WM_HWIN backup = WM_HBKWIN;
+	if (pMsg->MsgId == WM_PAINT)
 	{
-		int ID = WM_GetId(pMsg->hWinSrc);
-		int Ncode = pMsg->Data.v;
-		switch(ID)
-		{
-			case WIDGET_MODE_ID:
-			{
-				switch(Ncode)
-				{
-					case WM_NOTIFICATION_SEL_CHANGED:
-					{
-						modeChanged = 1;
-						break;
-					}
-				}
-				break;
-			}
-		}
+		GUI_Clear();
+		GUI_SetFont(&MAIN_FONT);
+		GUI_SetColor(GUI_BLACK);
+		GUI_DispStringAt("Mode:", leftX, startY + 2 * INC_YVALUE - 23);
+		GUI_DispStringAt("Address: ", leftX, startY + 3 * INC_YVALUE - 23 );
+		GUI_DispStringAt("Baud: ", leftX, startY + 4 * INC_YVALUE - 23);
+		GUI_DispStringAt("Waiting time: ", leftX, startY + 5 * INC_YVALUE - 23);
+		LISTBOX_Handle mode = LISTBOX_CreateEx(140, startY + 2 * INC_YVALUE, 90, GUI_GetYDistOfFont(GUI_GetFont()), pMsg->hWin, WM_CF_SHOW, 0, WIDGET_MODE_ID, modeArray);
+		SPINBOX_Handle address = SPINBOX_CreateEx(140, startY + 3 * INC_YVALUE, 90, GUI_GetYDistOfFont(GUI_GetFont()), pMsg->hWin, WM_CF_SHOW, WIDGET_ADDRESS_ID, MODBUS_MIN_ADDRESS, MODBUS_MAX_ADDRESS);
+		LISTBOX_Handle baud = LISTBOX_CreateEx(140, startY + 4 * INC_YVALUE, 90, GUI_GetYDistOfFont(GUI_GetFont()), pMsg->hWin, WM_CF_SHOW, 0, WIDGET_BAUD_ID, baudArray);
+		SPINBOX_Handle waitingTime = SPINBOX_CreateEx(140, startY + 5 * INC_YVALUE, 90, GUI_GetYDistOfFont(GUI_GetFont()), pMsg->hWin, WM_CF_SHOW, WIDGET_WAITING_TIME_ID, 1, 250);
+
+		LISTBOX_SetFont(mode, &MAIN_FONT);
+		SPINBOX_SetFont(address, &MAIN_FONT);
+		LISTBOX_SetFont(baud, &MAIN_FONT);
+		SPINBOX_SetFont(waitingTime, &MAIN_FONT);
+
+		/*LISTBOX_SetSel(mode, deviceState->settings.deviceMode);
+		SPINBOX_SetValue(address, deviceState->settings.address);
+		LISTBOX_SetSel(baud, deviceState->settings.baud);
+		SPINBOX_SetValue(waitingTime, deviceState->settings.waitingTime);*/
+
+		WM_SetFocus(mode);
+
 	}
 	else
 	{
-		if(pMsg->MsgId == WM_PAINT)
+		if (pMsg->MsgId == WM_NOTIFY_PARENT)
 		{
-			GUI_Clear();
-			GUI_SetFont(&GUI_Font20_1);
-			GUI_DispStringHCenterAt("Settings", LCD_GetXSize()/2, startY);
-			GUI_DispStringAt("Mode:", leftX, startY + 2 * INC_YVALUE);
-			GUI_DispStringAt("Address: ", leftX, startY + 3 * INC_YVALUE);
-			GUI_DispStringAt("Baud: ", leftX, startY + 4 * INC_YVALUE);
-			GUI_DispStringAt("Waiting time: ", leftX, startY + 5 * INC_YVALUE);
+			FRAMEWIN_Callback(pMsg);
 		}
-		else
-		if(pMsg->MsgId == WM_KEY)
+		if (pMsg->MsgId == WM_KEY)
 		{
-			key = *(WM_KEY_INFO*)(pMsg->Data.p);
-			if(key.PressedCnt = 0)
-			{
-
-			}
+			FRAMEWIN_Callback(pMsg);
 		}
-		else
-			WM_DefaultProc(pMsg);
+		FRAMEWIN_Callback(pMsg);
 	}
 }
-
-MENU_SWITCH nextMenu = MENU_STAY;
 
 static void UI_ModeMasterListBoxCallback(WM_MESSAGE *pMsg)
 {
 	u16_t startY = 20;
 	u16_t leftX = 10;
-
-	SPINBOX_Handle address;
-	LISTBOX_Handle mode;
-	LISTBOX_Handle baud;
-	SPINBOX_Handle waitingTime;
-	GUI_ConstString baudArray[] = {"1200", "2400", "9600", NULL};
+	
+	GUI_ConstString baudArray[] = {"1200", "2400", "9600", "115200", NULL};
 	GUI_ConstString modeArray[] = {"Slave", "Master", NULL};
-	WM_HMEM *focusArray[] = {&mode, &address, &baud, &waitingTime};
-	u8_t focusCount = 0;
+	static u8_t focusCount = 0;
+	u16_t focusID = 0;
 	WM_KEY_INFO key;
 	UI_DeviceStateStruct *deviceState;
-	u8_t num = 0;
 
-	WM_GetUserData(pMsg->hWin, &deviceState, sizeof(deviceState));
+	/*WM_GetUserData(pMsg->hWin, &deviceState, sizeof(deviceState));
 
 	if(deviceState == NULL)
 		WM_DefaultProc(pMsg);
@@ -225,36 +250,46 @@ static void UI_ModeMasterListBoxCallback(WM_MESSAGE *pMsg)
 		if(pMsg->MsgId == WM_PAINT)
 		{  
 			GUI_Clear();
-			GUI_SetFont(&GUI_Font20_1);
-			GUI_DispStringHCenterAt("Settings", LCD_GetXSize()/2, startY);
-			GUI_DispStringAt("Mode:", leftX, startY + 2 * INC_YVALUE);
-			GUI_DispStringAt("Address: ", leftX, startY + 3 * INC_YVALUE);
-			GUI_DispStringAt("Baud: ", leftX, startY + 4 * INC_YVALUE);
-			GUI_DispStringAt("Waiting time: ", leftX, startY + 5 * INC_YVALUE);
-			mode = LISTBOX_CreateEx(140, startY + 2 * INC_YVALUE, 60, GUI_GetYDistOfFont(GUI_GetFont()), pMsg->hWin, WM_CF_SHOW, 0, WIDGET_MODE_ID, modeArray);
-			address = SPINBOX_CreateEx(140, startY + 3*INC_YVALUE, 60, GUI_GetYDistOfFont(GUI_GetFont()), pMsg->hWin, WM_CF_SHOW, WIDGET_ADDRESS_ID, MODBUS_MIN_ADDRESS, MODBUS_MAX_ADDRESS);
-			baud = LISTBOX_CreateEx(140, startY + 4 * INC_YVALUE, 60, GUI_GetYDistOfFont(GUI_GetFont()), pMsg->hWin, WM_CF_SHOW, 0, WIDGET_BAUD_ID, baudArray);
-			waitingTime = SPINBOX_CreateEx(140, startY + 5 * INC_YVALUE, 60, GUI_GetYDistOfFont(GUI_GetFont()), pMsg->hWin, WM_CF_SHOW, WIDGET_WAITING_TIME_ID, 1, 250);
-			LISTBOX_SetSel(mode, deviceState->settings.deviceMode);
-			SPINBOX_SetValue(address, deviceState->settings.address);
-			LISTBOX_SetSel(baud, deviceState->settings.baud);
-			SPINBOX_SetValue(waitingTime, deviceState->settings.waitingTime);
+			GUI_SetFont(&MAIN_FONT);
+			FRAMEWIN_Handle frame = FRAMEWIN_CreateUser(0, 0, LCD_GetXSize(), LCD_GetYSize(), pMsg->hWin, WM_CF_SHOW, 0, WIDGET_FRAME_ID, "Settings", UI_FrameWinCallback, sizeof(deviceState));
+			//FRAMEWIN_SetUserData(frame, &deviceState, sizeof(deviceState));
 			deviceState->modeChanged = 0;
-			WM_SetFocus(*focusArray[focusCount]);
 		}
 		else
 		if(pMsg->MsgId == WM_KEY)
 		{
 			key = *(WM_KEY_INFO*)(pMsg->Data.p);
-			if(key.PressedCnt = 0)
+			if(key.PressedCnt == 0)
 			{
 				switch (key.Key)
 				{
 					case GUI_KEY_ENTER:
 					{
-						if((++focusCount) == sizeof(focusArray)/sizeof(focusArray[0]))
-							focusCount = 0;
-						WM_SetFocus(*focusArray[focusCount]);
+						switch (++focusCount)
+						{
+							case 1:
+							{
+								focusID = WIDGET_ADDRESS_ID;
+								break;
+							}
+							case 2:
+							{
+								focusID = WIDGET_BAUD_ID;
+								break;
+							}
+							case 3:
+							{
+								focusID = WIDGET_WAITING_TIME_ID;
+								break;
+							}
+							case 4:
+							{
+								focusCount = 0;
+								focusID = WIDGET_MODE_ID;
+								break;
+							}
+						}
+						WM_SetFocus(WM_GetDialogItem(pMsg->hWin, focusID));
 						break;
 					}
 					case GUI_KEY_LEFT:
@@ -274,144 +309,46 @@ static void UI_ModeMasterListBoxCallback(WM_MESSAGE *pMsg)
 		else
 			WM_DefaultProc(pMsg);
 	}
-	}
-}
-
-MENU_SWITCH UI_DisplayMasterSettingsMenu(UI_DeviceStateStruct *deviceState)
-{
-	u16_t startY = 20;
-	u16_t leftX = 10;
-	u8_t key = 0;
-	u8_t num = 0;
-	u8_t focusCount = 0;
-	WM_HWIN window;
-
-	window = WM_CreateWindow(0, 0, LCD_GetXSize(), LCD_GetYSize(), WM_CF_SHOW, UI_ModeMasterListBoxCallback, sizeof(deviceState));
-	num = WM_SetUserData(window, &deviceState, sizeof(deviceState));
-
-	while(1)
-	{
-		while((!deviceState->modeChanged) && (deviceState->menuSwitch == MENU_STAY))
-		{
-			GUI_Delay(100);
-		}
-		deviceState->modeChanged = 0;
-		if(deviceState->settings.deviceMode == MODE_MASTER)
-			deviceState->settings.deviceMode = MODE_SLAVE;
-		else
-			deviceState->settings.deviceMode = MODE_MASTER;
-		WM_Paint(window);
-	}
-	WM_DeleteWindow(window);
-	return nextMenu;
-}
-
-MENU_SWITCH UI_DisplaySlaveSettingsMenu(DEVICE_SettingsStruct *settings)
-{
-	u16_t startY = 20;
-	u16_t leftX = 10;
-	u8_t key = 0;
-	MENU_SWITCH nextMenu = MENU_STAY;
-	SPINBOX_Handle address;
-	LISTBOX_Handle mode;
-	LISTBOX_Handle baud;
-	SPINBOX_Handle waitingTime;
-	GUI_ConstString baudArray[] = {"1200", "2400", "9600", NULL};
-	GUI_ConstString modeArray[] = {"Slave", "Master", NULL};
-	WM_HMEM *focusArray[] = {&mode, &address, &baud, &waitingTime};
-	u8_t focusCount = 0;
-	WM_HWIN window;
-
-	window = WM_CreateWindow(0, 0, LCD_GetXSize(), LCD_GetYSize(), WM_CF_SHOW, UI_ModeSlaveListBoxCallback, 4);
-	WM_SetUserData(window, settings, 4);
-
-	mode = LISTBOX_CreateEx(140, startY + 2 * INC_YVALUE, 60, GUI_GetYDistOfFont(GUI_GetFont()), window, WM_CF_SHOW, 0, WIDGET_MODE_ID, modeArray);
-	address = SPINBOX_CreateEx(140, startY + 3*INC_YVALUE, 60, GUI_GetYDistOfFont(GUI_GetFont()), window, WM_CF_SHOW, WIDGET_ADDRESS_ID, MODBUS_MIN_ADDRESS, MODBUS_MAX_ADDRESS);
-	baud = LISTBOX_CreateEx(140, startY + 4 * INC_YVALUE, 60, GUI_GetYDistOfFont(GUI_GetFont()), window, WM_CF_SHOW, 0, WIDGET_BAUD_ID, baudArray);
-	waitingTime = SPINBOX_CreateEx(140, startY + 5 * INC_YVALUE, 60, GUI_GetYDistOfFont(GUI_GetFont()), window, WM_CF_SHOW, WIDGET_WAITING_TIME_ID, 1, 250);
-	LISTBOX_SetSel(mode, settings->deviceMode);
-	SPINBOX_SetValue(address, settings->address);
-	LISTBOX_SetSel(baud, settings->baud);
-	SPINBOX_SetValue(waitingTime, settings->waitingTime);
-	modeChanged = 0;
-	WM_SetFocus(*focusArray[focusCount]);
-	
-	while((!modeChanged) && (nextMenu == MENU_STAY))
-	{
-		GUI_ClearKeyBuffer();
-		GUI_Delay(100);
-
-		key = GUI_GetKey();
-		switch (key)
-		{
-			case GUI_KEY_ENTER:
-			{
-				if((++focusCount) == sizeof(focusArray)/sizeof(focusArray[0]))
-					focusCount = 0;
-				WM_SetFocus(*focusArray[focusCount]);
-				break;
-			}
-			case GUI_KEY_LEFT:
-			{
-				nextMenu = MENU_PREV;
-				break;
-			}
-			default:
-			{
-				key = 0;
-				break;
-			}
-		}
-	}
-	GUI_Clear();
-	WM_DeleteWindow(window);
-	WM_DeleteWindow(mode);
-	WM_DeleteWindow(address);
-	WM_DeleteWindow(baud);
-	WM_DeleteWindow(waitingTime);
-	return nextMenu;
+	}*/
 }
 
 MENU_SWITCH UI_DisplaySettingsMenu(UI_DeviceStateStruct *deviceState)
 {
-	MENU_SWITCH nextMenu = MENU_STAY;
-	while(1)
-	{
-		//if(settings->deviceMode == MODE_SLAVE)
-			//nextMenu = UI_DisplaySlaveSettingsMenu(settings);
-		//else
-			nextMenu = UI_DisplayMasterSettingsMenu(deviceState);
+	u16_t startY = 20;
+	u16_t leftX = 10;
 
-		while(nextMenu == MENU_STAY)
+	while (deviceState->menuSwitch == MENU_STAY)
+	{
+		TEXT_SetDefaultFont(&MAIN_FONT);
+		WM_HWIN window = WM_CreateWindow(0, 0, LCD_GetXSize(), LCD_GetYSize(), WM_CF_SHOW, UI_ModeMasterListBoxCallback, sizeof(deviceState));
+		WM_HWIN dialog = GUI_CreateDialogBox(settingsDialogCreate, GUI_COUNTOF(settingsDialogCreate), UI_DialogCallback, window, 0, 0);
+		//WM_HWIN window = WM_CreateWindow(0, 0, LCD_GetXSize(), LCD_GetYSize(), WM_CF_SHOW, UI_ModeMasterListBoxCallback, sizeof(deviceState));
+		//u8_t num = WM_SetUserData(window, &deviceState, sizeof(deviceState));
+
+		while ((!deviceState->modeChanged) && (deviceState->menuSwitch == MENU_STAY))
 		{
 			GUI_Delay(100);
 		}
 
-		/*if(nextMenu != MENU_STAY)
-			return nextMenu;
-		else
-		{
-			if(modeChanged)
-			{
-				modeChanged = 0;
-				if(settings->deviceMode == MODE_SLAVE)
-					settings->deviceMode = MODE_MASTER;
-				else
-					settings->deviceMode = MODE_SLAVE;
-			}
-		}*/
-	}
+		WM_DeleteWindow(window);
 
+		if (deviceState->menuSwitch == MENU_STAY)
+		{
+			deviceState->modeChanged = 0;
+			if (deviceState->settings.deviceMode == MODE_MASTER)
+				deviceState->settings.deviceMode = MODE_SLAVE;
+			else
+				deviceState->settings.deviceMode = MODE_MASTER;
+		}
+	}
+	return deviceState->menuSwitch;
 }
 
 void MainTask(void) 
 {
-	u8_t key = 0;
-	GUI_KEY_STATE keyState;
-	keyState.Key = GUI_KEY_ENTER;
 	GUI_Init();
 	GUI_Clear();
-	GUI_SetFont(&GUI_Font20_1);
+	GUI_SetFont(&MAIN_FONT);
 	UI_MenuTask();
 	while(1);
 }

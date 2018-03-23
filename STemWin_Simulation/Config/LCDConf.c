@@ -21,19 +21,14 @@ Purpose     : Display controller configuration (single layer)
 */
 
 #include "GUI.h"
-
+#include "LCDConf.h"
 /*********************************************************************
 *
 *       Layer configuration (to be modified)
 *
 **********************************************************************
 */
-//
-// Physical display size
-//
-#define XSIZE_PHYS  320
-#define YSIZE_PHYS  240
-#define VYSIZE_PHYS (YSIZE_PHYS << 1)
+
 
 //
 // Color conversion
