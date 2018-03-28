@@ -14,11 +14,26 @@ typedef signed int s32_t;
 #define WIDGET_ADDRESS_ID			(GUI_ID_USER + 1)
 #define WIDGET_BAUD_ID				(GUI_ID_USER + 2)
 #define WIDGET_WAITING_TIME_ID		(GUI_ID_USER + 3)
-#define WIDGET_FRAME_ID				(GUI_ID_USER + 4)
-#define WIDGET_TEXT_MODE_ID			(GUI_ID_USER + 4)
+#define WIDGET_FRAME_SLAVE_ID		(GUI_ID_USER + 4)
+#define WIDGET_FRAME_MASTER_ID		(GUI_ID_USER + 5)
+#define WIDGET_PERIOD_ID			(GUI_ID_USER + 6)
+#define WIDGET_FRAME_MAIN_ID		(GUI_ID_USER + 7)
+
+#define WIDGET_TEXT_MODE_ID			(GUI_ID_USER + 8)
+#define WIDGET_TEXT_STATE_ID		(GUI_ID_USER + 9)
+#define WIDGET_TEXT_TEMP_ID			(GUI_ID_USER + 10)
+#define WIDGET_TEXT_PRESSURE_ID		(GUI_ID_USER + 11)
+#define WIDGET_TEXT_RH_ID			(GUI_ID_USER + 12)
+
+#define MESSAGE_SET_DATA					(WM_USER + 0)
+#define MESSAGE_CREATE						(WM_USER + 1)
+#define MESSAGE_MENU_CHANGED_NEXT			(WM_USER + 2)
+#define MESSAGE_MENU_CHANGED_PREV			(WM_USER + 3)
+#define MESSAGE_SETTINGS_MODE_CHANGED		(WM_USER + 4)
 
 #define LEFT_X	10
 #define TOP_Y	20
+
 typedef struct 
 {
 	u8_t deviceMode;
@@ -48,8 +63,9 @@ typedef enum
 
 typedef enum
 {
-	MAIN_MENU = 0,
-	SETTINGS_MENU = 1
+	MENU_NONE = 0,
+	MAIN_MENU = 1,
+	SETTINGS_MENU = 2
 }KEY_STATES;
 
 typedef enum
@@ -66,6 +82,6 @@ typedef struct
 	DEVICE_SettingsStruct settings;
 }UI_DeviceStateStruct;
 
-#define INC_YVALUE	26
-#define FONT_HEIGHT	20
+#define INC_YVALUE	28
+#define FONT_HEIGHT	24
 #define MAIN_FONT GUI_Font20_1

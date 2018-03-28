@@ -27,6 +27,7 @@ Purpose     : Simple demo drawing "Hello world"
 #include "DROPDOWN.h"
 #include "FRAMEWIN.h"
 #include "BUTTON.h"
+#include "EDIT.h"
 #include "LCDConf.h"
 /*********************************************************************
 *
@@ -39,41 +40,292 @@ Purpose     : Simple demo drawing "Hello world"
 *       MainTask
 */
 
-MENU_SWITCH UI_DisplayMainMenu(DEVICE_MODES mode, DEVICE_STATES state, s16_t temp, u16_t pressure, u16_t humidity);
-MENU_SWITCH UI_DisplaySettingsMenu(UI_DeviceStateStruct *deviceState);
+//MENU_SWITCH UI_DisplayMainMenu(DEVICE_MODES mode, DEVICE_STATES state, s16_t temp, u16_t pressure, u16_t humidity);
+//MENU_SWITCH UI_DisplaySettingsMenu(UI_DeviceStateStruct *deviceState);
 
-static const GUI_WIDGET_CREATE_INFO settingsDialogCreate[] = {
-	{FRAMEWIN_CreateIndirect, "Settings", WIDGET_FRAME_ID, 0, 0, XSIZE_PHYS, YSIZE_PHYS, 0, 0 },
-	{TEXT_CreateIndirect, "Mode:", WIDGET_TEXT_MODE_ID, LEFT_X, TOP_Y + 2 * INC_YVALUE, 120, FONT_HEIGHT, 0, 0}
-	{TEXT_CreateIndirect, "Address:", WIDGET_TEXT_MODE_ID, LEFT_X, TOP_Y + 2 * INC_YVALUE, 120, FONT_HEIGHT, 0, 0}
-	{TEXT_CreateIndirect, "Baud:", WIDGET_TEXT_MODE_ID, LEFT_X, TOP_Y + 2 * INC_YVALUE, 120, FONT_HEIGHT, 0, 0}
+void UI_DisplaySettingsSlaveMenu(WM_HWIN parentWindow);
+void UI_DisplaySettingsMasterMenu(WM_HWIN parentWindow);
+void UI_DisplaySettingsMenu(WM_HWIN parentWindow);
+void UI_DisplayMainMenu(WM_HWIN parentWindow);
+
+static const GUI_WIDGET_CREATE_INFO settingsSlaveDialogCreate[] = {
+	{ FRAMEWIN_CreateIndirect,	"Settings",				WIDGET_FRAME_SLAVE_ID,		0,		0,						XSIZE_PHYS, YSIZE_PHYS,  0, 0 },
+	{ TEXT_CreateIndirect,		"Mode:",				0,							LEFT_X, TOP_Y + 1 * INC_YVALUE, 140,		FONT_HEIGHT, 0, 0 },
+	{ TEXT_CreateIndirect,		"Address:",				0,							LEFT_X, TOP_Y + 2 * INC_YVALUE, 140,		FONT_HEIGHT, 0, 0 },
+	{ TEXT_CreateIndirect,		"Baud:",				0,							LEFT_X, TOP_Y + 3 * INC_YVALUE, 140,		FONT_HEIGHT, 0, 0 },
+	{ TEXT_CreateIndirect,		"Waiting time:",		0,							LEFT_X, TOP_Y + 4 * INC_YVALUE, 140,		FONT_HEIGHT, 0, 0 },
+	{ LISTBOX_CreateIndirect,	NULL,					WIDGET_MODE_ID,				170,	TOP_Y + 1 * INC_YVALUE, 120,		FONT_HEIGHT, 0, 0 },
+	{ SPINBOX_CreateIndirect,	NULL,					WIDGET_ADDRESS_ID,			170,	TOP_Y + 2 * INC_YVALUE, 120,		FONT_HEIGHT, 0, 0 },
+	{ LISTBOX_CreateIndirect,	NULL,					WIDGET_BAUD_ID,				170,	TOP_Y + 3 * INC_YVALUE,	120,		FONT_HEIGHT, 0, 0 },
+	{ SPINBOX_CreateIndirect,	NULL,					WIDGET_WAITING_TIME_ID,		170,	TOP_Y + 4 * INC_YVALUE,	120,		FONT_HEIGHT, 0, 0 }
 };
 
-static void UI_DialogCallback(WM_MESSAGE *pMsg)
+static const GUI_WIDGET_CREATE_INFO settingsMasterDialogCreate[] = {
+	{ FRAMEWIN_CreateIndirect,	"Settings",				WIDGET_FRAME_MASTER_ID,		0,		0,						XSIZE_PHYS, YSIZE_PHYS,  0, 0 },
+	{ TEXT_CreateIndirect,		"Mode:",				0,							LEFT_X, TOP_Y + 1 * INC_YVALUE, 140,		FONT_HEIGHT, 0, 0 },
+	{ TEXT_CreateIndirect,		"Address:",				0,							LEFT_X, TOP_Y + 2 * INC_YVALUE, 140,		FONT_HEIGHT, 0, 0 },
+	{ TEXT_CreateIndirect,		"Baud:",				0,							LEFT_X, TOP_Y + 3 * INC_YVALUE, 140,		FONT_HEIGHT, 0, 0 },
+	{ TEXT_CreateIndirect,		"Interview preiod:",	0,							LEFT_X, TOP_Y + 4 * INC_YVALUE, 140,		FONT_HEIGHT, 0, 0 },
+	{ LISTBOX_CreateIndirect,	NULL,					WIDGET_MODE_ID,				170,	TOP_Y + 1 * INC_YVALUE, 120,		FONT_HEIGHT, 0, 0 },
+	{ SPINBOX_CreateIndirect,	NULL,					WIDGET_ADDRESS_ID,			170,	TOP_Y + 2 * INC_YVALUE, 120,		FONT_HEIGHT, 0, 0 },
+	{ LISTBOX_CreateIndirect,	NULL,					WIDGET_BAUD_ID,				170,	TOP_Y + 3 * INC_YVALUE,	120,		FONT_HEIGHT, 0, 0 },
+	{ SPINBOX_CreateIndirect,	NULL,					WIDGET_PERIOD_ID,			170,	TOP_Y + 4 * INC_YVALUE,	120,		FONT_HEIGHT, 0, 0 }
+};
+
+static const GUI_WIDGET_CREATE_INFO mainMenuDialogCreate[] = {
+	{ FRAMEWIN_CreateIndirect,	"Main Menu",			WIDGET_FRAME_MAIN_ID,		0,		0,						XSIZE_PHYS, YSIZE_PHYS,  0, 0 },
+	{ TEXT_CreateIndirect,		"Current Mode:",		0,							LEFT_X, TOP_Y + 1 * INC_YVALUE, 140,		FONT_HEIGHT, 0, 0 },
+	{ TEXT_CreateIndirect,		"Current State:",		0,							LEFT_X, TOP_Y + 2 * INC_YVALUE, 140,		FONT_HEIGHT, 0, 0 },
+	{ TEXT_CreateIndirect,		"Temperature:",			0,							LEFT_X, TOP_Y + 3 * INC_YVALUE, 140,		FONT_HEIGHT, 0, 0 },
+	{ TEXT_CreateIndirect,		"Pressure:",			0,							LEFT_X, TOP_Y + 4 * INC_YVALUE, 140,		FONT_HEIGHT, 0, 0 },
+	{ TEXT_CreateIndirect,		"Humidity:",			0,							LEFT_X, TOP_Y + 5 * INC_YVALUE, 140,		FONT_HEIGHT, 0, 0 },
+
+	{ EDIT_CreateIndirect,		NULL,					WIDGET_TEXT_MODE_ID,		170, TOP_Y + 1 * INC_YVALUE,	80,		FONT_HEIGHT, 0, 0 },
+	{ EDIT_CreateIndirect,		NULL,					WIDGET_TEXT_STATE_ID,		170, TOP_Y + 2 * INC_YVALUE,	80,		FONT_HEIGHT, 0, 0 },
+	{ EDIT_CreateIndirect,		NULL,					WIDGET_TEXT_TEMP_ID,		170, TOP_Y + 3 * INC_YVALUE,	80,		FONT_HEIGHT, 0, 0 },
+	{ EDIT_CreateIndirect,		NULL,					WIDGET_TEXT_PRESSURE_ID,	170, TOP_Y + 4 * INC_YVALUE,	80,		FONT_HEIGHT, 0, 0 },
+	{ EDIT_CreateIndirect,		NULL,					WIDGET_TEXT_RH_ID,			170, TOP_Y + 5 * INC_YVALUE,	80,		FONT_HEIGHT, 0, 0 },
+
+	{ TEXT_CreateIndirect,		"°C",					0,							270, TOP_Y + 3 * INC_YVALUE,	40,			FONT_HEIGHT, 0, 0 },
+	{ TEXT_CreateIndirect,		"kPa",					0,							270, TOP_Y + 4 * INC_YVALUE,	40,			FONT_HEIGHT, 0, 0 },
+	{ TEXT_CreateIndirect,		"%",					0,							270, TOP_Y + 5 * INC_YVALUE,	40,			FONT_HEIGHT, 0, 0 },
+};
+
+u16_t Device_GetMode()
+{
+	return MODE_SLAVE;
+}
+
+u16_t Device_GetState()
+{
+	return STATE_STOP;
+}
+
+s32_t Device_GetTemp()
+{
+	return 233;
+}
+
+u32_t Device_GetPressure()
+{
+	return 1000;
+}
+
+u16_t Device_GetRH()
+{
+	return 20;
+}
+
+void Device_Run()
+{
+
+}
+
+void Device_Stop()
+{
+
+}
+
+
+static void UI_SettingsDialogCallback(WM_MESSAGE *pMsg)
 {
 	WM_HWIN hWin = pMsg->hWin;
-	WM_HWIN hItem;
+	GUI_ConstString modeArray[] = {"Slave", "Master"};
+	GUI_ConstString baudArray[] = { "1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200"};
+	static u8_t changeFlag = 0;
+	static WM_HWIN focusArray[4] = {0};
 	switch (pMsg->MsgId)
 	{
-	case WM_INIT_DIALOG:
-	{
-		hItem = WM_GetDialogItem(hWin, WIDGET_TEXT_MODE_ID);
-		break;
+		case MESSAGE_CREATE:
+		{
+			WM_HWIN hItem = WM_GetDialogItem(hWin, WIDGET_MODE_ID);
+			for (u8_t i = 0; i < GUI_COUNTOF(modeArray); i++)
+				LISTBOX_AddString(hItem, modeArray[i]);
+			LISTBOX_SetFont(hItem, &MAIN_FONT);
+			focusArray[0] = hItem;
+
+			hItem = WM_GetDialogItem(hWin, WIDGET_ADDRESS_ID);
+			SPINBOX_SetRange(hItem, MODBUS_MIN_ADDRESS, MODBUS_MAX_ADDRESS);
+			SPINBOX_SetFont(hItem, &MAIN_FONT);
+			focusArray[1] = hItem;
+
+			hItem = WM_GetDialogItem(hWin, WIDGET_BAUD_ID);
+			for (u8_t i = 0; i < GUI_COUNTOF(baudArray); i++)
+				LISTBOX_AddString(hItem, baudArray[i]);
+			LISTBOX_SetFont(hItem, &MAIN_FONT);
+			focusArray[2] = hItem;
+
+			if (WM_GetId(hWin) == WIDGET_FRAME_SLAVE_ID)
+			{
+				hItem = WM_GetDialogItem(hWin, WIDGET_WAITING_TIME_ID);
+				SPINBOX_SetRange(hItem, 1, 250);
+				SPINBOX_SetFont(hItem, &MAIN_FONT);
+				focusArray[3] = hItem;
+			}
+			else
+			{
+				hItem = WM_GetDialogItem(hWin, WIDGET_PERIOD_ID);
+				SPINBOX_SetRange(hItem, 1, 250);
+				SPINBOX_SetFont(hItem, &MAIN_FONT);
+				focusArray[3] = hItem;
+			}
+			
+			FRAMEWIN_SetTextAlign(hWin, GUI_TA_HCENTER);
+			FRAMEWIN_SetFont(hWin, &MAIN_FONT);
+
+			changeFlag = 1;
+			LISTBOX_SetSel((LISTBOX_Handle)(WM_GetDialogItem(hWin, WIDGET_MODE_ID)), pMsg->Data.v);
+			break;
+		}
+		case WM_NOTIFY_PARENT:
+		{
+			int ID = WM_GetId(pMsg->hWinSrc);
+			int Ncode = pMsg->Data.v;
+			switch (ID)
+			{
+				case WIDGET_MODE_ID:
+				{
+					switch (Ncode)
+					{
+						case WM_NOTIFICATION_SEL_CHANGED:
+						{
+							if (!changeFlag)
+							{
+								WM_MESSAGE messageToParent;
+								messageToParent.MsgId = MESSAGE_SETTINGS_MODE_CHANGED;
+								messageToParent.Data.v = LISTBOX_GetSel((LISTBOX_Handle)(pMsg->hWinSrc));
+								WM_SendToParent(hWin, &messageToParent);
+							}
+							break;
+						}
+					}
+					break;
+				}
+			}
+			break;
+		}
+		case WM_KEY:
+		{
+			WM_KEY_INFO key = *(WM_KEY_INFO*)(pMsg->Data.p);
+			if (key.PressedCnt == 0)
+			{
+				switch (key.Key)
+				{
+					case GUI_KEY_ENTER:
+					{
+						u8_t i = 0;
+						for (i = 0; i < GUI_COUNTOF(focusArray); i++)
+						{
+							if (WM_GetFocussedWindow() == focusArray[i])
+								break;
+						}
+						if (i != (GUI_COUNTOF(focusArray) - 1))
+							WM_SetFocus(focusArray[++i]);
+						else
+							WM_SetFocus(focusArray[0]);
+						break;
+					}
+					case GUI_KEY_LEFT:
+					{
+						WM_MESSAGE messageToParent;
+						messageToParent.MsgId = MESSAGE_MENU_CHANGED_PREV;
+						messageToParent.Data.v = SETTINGS_MENU;
+						WM_SendToParent(hWin, &messageToParent);
+						break;
+					}
+				}
+			}
+			break;
+		}
+		default:
+		{
+			WM_DefaultProc(pMsg);
+			break;
+		}
 	}
-	case WM_KEY:
+	changeFlag = 0;
+}
+
+void UI_MainMenuInitEdit(WM_HWIN hWin)
+{
+	WM_HWIN hItem = WM_GetDialogItem(hWin, WIDGET_TEXT_MODE_ID);
+
+	EDIT_SetFont(hItem, &MAIN_FONT);
+	EDIT_SetTextMode(hItem);
+
+	hItem = WM_GetDialogItem(hWin, WIDGET_TEXT_STATE_ID);
+	EDIT_SetFont(hItem, &MAIN_FONT);
+	EDIT_SetTextMode(hItem);
+
+	hItem = WM_GetDialogItem(hWin, WIDGET_TEXT_TEMP_ID);
+	EDIT_SetFont(hItem, &MAIN_FONT);
+	EDIT_SetDecMode(hItem, Device_GetTemp(), -999, 999, 1, GUI_EDIT_SIGNED);
+	EDIT_SetMaxLen(hItem, 5);
+
+	hItem = WM_GetDialogItem(hWin, WIDGET_TEXT_PRESSURE_ID);
+	EDIT_SetFont(hItem, &MAIN_FONT);
+	EDIT_SetDecMode(hItem, Device_GetPressure(), 0, 2000, 1, GUI_EDIT_NORMAL);
+
+	hItem = WM_GetDialogItem(hWin, WIDGET_TEXT_RH_ID);
+	EDIT_SetFont(hItem, &MAIN_FONT);
+	EDIT_SetDecMode(hItem, Device_GetRH(), 0, 99, 0, GUI_EDIT_NORMAL);
+	EDIT_SetMaxLen(hItem, 2);
+}
+
+void UI_MainMenuSetValue(WM_HWIN hWin)
+{
+	GUI_ConstString modeArray[] = { "Slave", "Master" };
+	GUI_ConstString stateArray[] = { "Stop", "Run" };
+
+	WM_HWIN hItem = WM_GetDialogItem(hWin, WIDGET_TEXT_MODE_ID);
+	EDIT_SetText(hItem, modeArray[Device_GetMode()]);
+
+	hItem = WM_GetDialogItem(hWin, WIDGET_TEXT_STATE_ID);
+	EDIT_SetText(hItem, stateArray[Device_GetState()]);
+
+	hItem = WM_GetDialogItem(hWin, WIDGET_TEXT_TEMP_ID);
+	EDIT_SetValue(hItem, Device_GetTemp());
+
+	hItem = WM_GetDialogItem(hWin, WIDGET_TEXT_PRESSURE_ID);
+	EDIT_SetValue(hItem, Device_GetPressure());
+
+	hItem = WM_GetDialogItem(hWin, WIDGET_TEXT_RH_ID);
+	EDIT_SetValue(hItem, Device_GetRH());
+}
+
+static void UI_MainMenuDialogCallback(WM_MESSAGE *pMsg)
+{
+	WM_HWIN hWin = pMsg->hWin;
+	GUI_ConstString modeArray[] = { "Slave", "Master" };
+	GUI_ConstString stateArray[] = { "Stop", "Run" };
+	GUI_ConstString baudArray[] = { "1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200" };
+	static WM_HWIN focusArray[4] = { 0 };
+	switch (pMsg->MsgId)
 	{
-		WM_DefaultProc(pMsg);
-		break;
-	}
-	default:
-	{
-		WM_DefaultProc(pMsg);
-		break;
-	}
+		case MESSAGE_CREATE:
+		{
+			FRAMEWIN_SetTextAlign(hWin, GUI_TA_HCENTER);
+			FRAMEWIN_SetFont(hWin, &MAIN_FONT);
+			WM_HTIMER timer = WM_CreateTimer(WM_GetClientWindow(hWin), 0, 500, 0);
+			UI_MainMenuInitEdit(hWin);
+			UI_MainMenuSetValue(hWin);
+			break;
+		}
+		case WM_TIMER:
+		{
+			UI_MainMenuSetValue(hWin);
+			WM_RestartTimer((WM_HTIMER)(pMsg->Data.v), 500);
+			break;
+		}
+		default:
+		{
+			WM_DefaultProc(pMsg);
+			break;
+		}
 	}
 }
 
-void UI_MenuTask()
+/*void UI_MenuTask()
 {
 	DEVICE_SettingsStruct deviceSettings = {0,23,0,42};
 	UI_DeviceStateStruct deviceState;
@@ -105,9 +357,194 @@ void UI_MenuTask()
 			}
 		}
 	}
+}*/
+
+static void UI_SettingsWindowCallback(WM_MESSAGE *pMsg)
+{
+	WM_HWIN hWin = pMsg->hWin;
+
+	switch (pMsg->MsgId)
+	{
+	case MESSAGE_CREATE:
+	{
+		break;
+	}
+	case MESSAGE_SETTINGS_MODE_CHANGED:
+	{
+		u8_t mode = pMsg->Data.v;
+		WM_DeleteWindow(pMsg->hWinSrc);
+		if (mode == MODE_SLAVE)
+			UI_DisplaySettingsSlaveMenu(hWin);
+		else
+			UI_DisplaySettingsMasterMenu(hWin);
+		break;
+	}
+	case MESSAGE_MENU_CHANGED_NEXT:
+	case MESSAGE_MENU_CHANGED_PREV:
+	{
+		WM_MESSAGE messageToParent;
+		messageToParent.MsgId = pMsg->MsgId;
+		messageToParent.Data.v = pMsg->Data.v;
+		WM_SendToParent(hWin, &messageToParent);
+		break;
+	}
+	default:
+	{
+		WM_DefaultProc(pMsg);
+		break;
+	}
+	}
 }
 
-MENU_SWITCH UI_DisplayMainMenu(DEVICE_MODES mode, DEVICE_STATES state, s16_t temp, u16_t pressure, u16_t humidity)
+static void UI_MainMenuWindowCallback(WM_MESSAGE *pMsg)
+{
+	WM_HWIN hWin = pMsg->hWin;
+
+	switch (pMsg->MsgId)
+	{
+		case MESSAGE_CREATE:
+		{
+			break;
+		}
+		case WM_KEY:
+		{
+			WM_KEY_INFO key = *(WM_KEY_INFO*)(pMsg->Data.p);
+			if (key.PressedCnt == 0)
+			{
+				switch (key.Key)
+				{
+					case GUI_KEY_RIGHT:
+					{
+						WM_MESSAGE messageToParent;
+						messageToParent.MsgId = MESSAGE_MENU_CHANGED_NEXT;
+						messageToParent.Data.v = MAIN_MENU;
+						WM_SendToParent(hWin, &messageToParent);
+						break;
+					}
+				}
+			}
+			break;
+		}
+		case MESSAGE_MENU_CHANGED_NEXT:
+		case MESSAGE_MENU_CHANGED_PREV:
+		{
+			WM_MESSAGE messageToParent;
+			messageToParent.MsgId = pMsg->MsgId;
+			messageToParent.Data.v = pMsg->Data.v;
+			WM_SendToParent(hWin, &messageToParent);
+			break;
+		}
+		default:
+		{
+			WM_DefaultProc(pMsg);
+			break;
+		}
+	}
+}
+
+void UI_DisplaySettingsSlaveMenu(WM_HWIN parentWindow)
+{
+	WM_HWIN dialog = GUI_CreateDialogBox(settingsSlaveDialogCreate, GUI_COUNTOF(settingsSlaveDialogCreate), UI_SettingsDialogCallback, parentWindow, 0, 0);
+	WM_SetFocus(dialog);
+	WM_MESSAGE messageToDialog;
+	messageToDialog.MsgId = MESSAGE_CREATE;
+	messageToDialog.Data.v = MODE_SLAVE;
+	WM_SendMessage(WM_GetClientWindow(dialog), &messageToDialog);
+}
+
+void UI_DisplaySettingsMasterMenu(WM_HWIN parentWindow)
+{
+	WM_HWIN dialog = GUI_CreateDialogBox(settingsMasterDialogCreate, GUI_COUNTOF(settingsMasterDialogCreate), UI_SettingsDialogCallback, parentWindow, 0, 0);
+	WM_SetFocus(dialog);
+	WM_MESSAGE messageToDialog;
+	messageToDialog.MsgId = MESSAGE_CREATE;
+	messageToDialog.Data.v = MODE_MASTER;
+	WM_SendMessage(WM_GetClientWindow(dialog), &messageToDialog);
+}
+
+void UI_DisplaySettingsMenu(WM_HWIN parentWindow)
+{
+	TEXT_SetDefaultFont(&MAIN_FONT);
+	WM_HWIN settingsWindow = WM_CreateWindowAsChild(0, 0, LCD_GetXSize(), LCD_GetYSize(), parentWindow, WM_CF_SHOW, UI_SettingsWindowCallback, 0);
+	UI_DisplaySettingsSlaveMenu(settingsWindow);
+}
+
+void UI_DisplayMainMenu(WM_HWIN parentWindow)
+{
+	TEXT_SetDefaultFont(&MAIN_FONT);
+	WM_HWIN mainWindow = WM_CreateWindowAsChild(0, 0, LCD_GetXSize(), LCD_GetYSize(), parentWindow, WM_CF_SHOW, UI_MainMenuWindowCallback, 0);
+	WM_HWIN dialog = GUI_CreateDialogBox(mainMenuDialogCreate, GUI_COUNTOF(mainMenuDialogCreate), UI_MainMenuDialogCallback, mainWindow, 0, 0);
+	WM_SetFocus(WM_GetClientWindow(dialog));
+	WM_MESSAGE messageToDialog;
+	messageToDialog.MsgId = MESSAGE_CREATE;
+	WM_SendMessage(WM_GetClientWindow(dialog), &messageToDialog);
+}
+
+static void UI_MainWindowCallback(WM_MESSAGE *pMsg)
+{
+	WM_HWIN hWin = pMsg->hWin;
+	static u8_t currentMenu = MAIN_MENU;
+	switch (pMsg->MsgId)
+	{
+		case MESSAGE_CREATE:
+		{
+			//UI_DisplaySettingsMenu(hWin);
+			UI_DisplayMainMenu(hWin);
+			break;
+		}
+		case WM_KEY:
+		{
+			WM_DefaultProc(pMsg);
+			break;
+		}
+		case MESSAGE_MENU_CHANGED_NEXT:
+		{
+			u8_t menu = pMsg->Data.v;
+			switch (menu)
+			{
+				case MAIN_MENU:
+				{
+					WM_DeleteWindow(pMsg->hWinSrc);
+					UI_DisplaySettingsMenu(hWin);
+					break;
+				}
+			}
+			break;
+		}
+		case MESSAGE_MENU_CHANGED_PREV:
+		{
+			u8_t menu = pMsg->Data.v;
+			switch (menu)
+			{
+				case SETTINGS_MENU:
+				{
+					WM_DeleteWindow(pMsg->hWinSrc);
+					UI_DisplayMainMenu(hWin);
+					break;
+				}
+			}
+			break;
+		}
+		default:
+		{
+			WM_DefaultProc(pMsg);
+			break;
+		}
+	}
+}
+
+void UI_MenuTask()
+{
+	WM_HWIN window = WM_CreateWindow(0, 0, LCD_GetXSize(), LCD_GetYSize(), WM_CF_SHOW, UI_MainWindowCallback, 16);
+	WM_SendMessageNoPara(window, MESSAGE_CREATE);
+	GUI_Clear();
+	while (1)
+	{
+		GUI_Delay(100);
+	}
+}
+
+/*MENU_SWITCH UI_DisplayMainMenu(DEVICE_MODES mode, DEVICE_STATES state, s16_t temp, u16_t pressure, u16_t humidity)
 {
 	u8_t startY = 20;
 	u16_t leftX = 10;
@@ -155,7 +592,7 @@ MENU_SWITCH UI_DisplayMainMenu(DEVICE_MODES mode, DEVICE_STATES state, s16_t tem
 		GUI_ClearKeyBuffer();
 		GUI_Delay(800);
 	}
-}
+}*/
 
 static void UI_FrameWinCallback(WM_MESSAGE *pMsg)
 {
@@ -312,7 +749,7 @@ static void UI_ModeMasterListBoxCallback(WM_MESSAGE *pMsg)
 	}*/
 }
 
-MENU_SWITCH UI_DisplaySettingsMenu(UI_DeviceStateStruct *deviceState)
+/*MENU_SWITCH UI_DisplaySettingsMenu(UI_DeviceStateStruct *deviceState)
 {
 	u16_t startY = 20;
 	u16_t leftX = 10;
@@ -324,6 +761,7 @@ MENU_SWITCH UI_DisplaySettingsMenu(UI_DeviceStateStruct *deviceState)
 		WM_HWIN dialog = GUI_CreateDialogBox(settingsDialogCreate, GUI_COUNTOF(settingsDialogCreate), UI_DialogCallback, window, 0, 0);
 		//WM_HWIN window = WM_CreateWindow(0, 0, LCD_GetXSize(), LCD_GetYSize(), WM_CF_SHOW, UI_ModeMasterListBoxCallback, sizeof(deviceState));
 		//u8_t num = WM_SetUserData(window, &deviceState, sizeof(deviceState));
+		
 
 		while ((!deviceState->modeChanged) && (deviceState->menuSwitch == MENU_STAY))
 		{
@@ -342,7 +780,7 @@ MENU_SWITCH UI_DisplaySettingsMenu(UI_DeviceStateStruct *deviceState)
 		}
 	}
 	return deviceState->menuSwitch;
-}
+}*/
 
 void MainTask(void) 
 {
