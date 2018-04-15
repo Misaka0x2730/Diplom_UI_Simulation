@@ -1,6 +1,3 @@
-﻿  MainTask.c
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(604): warning C4101: deviceState: неиспользованная локальная переменная
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(657): warning C4101: deviceState: неиспользованная локальная переменная
-f:\diplom\diplom_ui_simulation\stemwin_simulation\application\maintask.c(656): warning C4101: key: неиспользованная локальная переменная
+﻿  UI_MainWindow.c
   Simulation.vcxproj -> F:\Diplom\Diplom_UI_Simulation\STemWin_Simulation\.\Output\Exe\simulation.exe
   Simulation.vcxproj -> .\Output\Exe\simulation.pdb (Full PDB)

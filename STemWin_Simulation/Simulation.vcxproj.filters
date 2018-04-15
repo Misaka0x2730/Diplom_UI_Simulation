@@ -37,6 +37,15 @@
     <ClCompile Include="..\Simulation\WinMain.c">
       <Filter>Simulation</Filter>
     </ClCompile>
+    <ClCompile Include="Application\UI_MainWindow.c">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\UI_SettingsWindow.c">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\UI_Device.c">
+      <Filter>Application</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Config\GUIConf.h">
@@ -335,6 +344,21 @@
     </ClInclude>
     <ClInclude Include="..\inc\WM_Intern.h">
       <Filter>GUI\Inc</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\types.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\UI_MainWindow.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\UI_Struct.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\UI_SettingsWindow.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\UI_Device.h">
+      <Filter>Application</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

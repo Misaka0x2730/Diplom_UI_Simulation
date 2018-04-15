@@ -147,6 +147,9 @@
   <ItemGroup>
     <ClCompile Include="..\Simulation\WinMain.c" />
     <ClCompile Include="Application\MainTask.c" />
+    <ClCompile Include="Application\UI_Device.c" />
+    <ClCompile Include="Application\UI_MainWindow.c" />
+    <ClCompile Include="Application\UI_SettingsWindow.c" />
     <ClCompile Include="Config\GUIConf.c" />
     <ClCompile Include="Config\LCDConf.c" />
     <ClCompile Include="Config\SIMConf.c" />
@@ -249,6 +252,11 @@
     <ClInclude Include="..\inc\WM_GUI.h" />
     <ClInclude Include="..\inc\WM_Intern.h" />
     <ClInclude Include="Application\MainTask.h" />
+    <ClInclude Include="Application\types.h" />
+    <ClInclude Include="Application\UI_Device.h" />
+    <ClInclude Include="Application\UI_MainWindow.h" />
+    <ClInclude Include="Application\UI_SettingsWindow.h" />
+    <ClInclude Include="Application\UI_Struct.h" />
     <ClInclude Include="Config\GUIConf.h" />
     <ClInclude Include="Config\LCDConf.h" />
   </ItemGroup>
